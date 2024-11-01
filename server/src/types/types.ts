@@ -13,6 +13,11 @@ export interface Car {
   personId: string;
 }
 
+export interface Database{
+  people: Person[];
+  cars: Car[];
+}
+
 export interface PersonInput {
   firstName: string;
   lastName: string;

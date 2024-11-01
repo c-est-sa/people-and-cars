@@ -1,111 +1,95 @@
-import { people, cars } from "../data/peopleCarsScheme.js";
 import {
-  Person,
-  Car,
-  PersonInput,
-  UpdatePersonInput,
-  CarInput,
-  UpdateCarInput,
-} from "../types/types.js";
+  addCar,
+  addPerson,
+  deleteCar,
+  deletePerson,
+  readData,
+  updateCar,
+  updatePerson,
+} from "../data/databaseOperations.js";
+import { Person, Car } from "../types/types.js";
 
 export const resolvers = {
   Query: {
-    people: () => people,
-    person: (_: unknown, { id }: { id: string }) =>
-      people.find((person) => person.id === id),
-    cars: () => cars,
-    car: (_: unknown, { id }: { id: string }) =>
-      cars.find((car) => car.id === id),
-    personCars: (_: unknown, { personId }: { personId: string }) =>
-      cars.filter((car) => car.personId === personId),
-    personWithCars: (
-      _: unknown,
-      { id }: { id: string }
-    ): Person | undefined => {
-      const person = people.find((person) => person.id === id);
-      if (!person) return undefined;
-      return person;
+    people: async () => {
+      const data = await readData();
+      return data.people;
     },
+
+    person: async (_: unknown, { id }: { id: string }) => {
+      const data = await readData();
+      return data.people.find((person) => person.id === id);
+    },
+
+    cars: async () => {
+      const data = await readData();
+      return data.cars;
+    },
+
+    car: async (_: unknown, { id }: { id: string }) => {
+      const data = await readData();
+      return data.cars.find((car) => car.id === id);
+    },
+    // personCars: (_: unknown, { personId }: { personId: string }) =>
+    //   cars.filter((car) => car.personId === personId),
+    // personWithCars: (
+    //   _: unknown,
+    //   { id }: { id: string }
+    // ): Person | undefined => {
+    //   const person = people.find((person) => person.id === id);
+    //   if (!person) return undefined;
+    //   return person;
+    // },
   },
 
   Mutation: {
-    createPerson: (_: unknown, { input }: { input: PersonInput }) => {
-      const maxId = Math.max(...people.map((person) => parseInt(person.id)));
-      const newPerson = {
-        id: String(maxId + 1),
-        ...input,
-      };
-      people.push(newPerson);
-      return newPerson;
-    },
-
-    updatePerson: (
+    addPerson: async (
       _: unknown,
-      { id, input }: { id: string; input: UpdatePersonInput }
+      { firstName, lastName }: Omit<Person, "id">
     ) => {
-      const personIndex = people.findIndex((person) => person.id === id);
-      if (personIndex === -1) throw new Error("Person not found");
-
-      const updatedPerson = {
-        ...people[personIndex],
-        ...input,
-      };
-      people[personIndex] = updatedPerson;
-      return updatedPerson;
+      return await addPerson({ firstName, lastName });
     },
 
-    deletePerson: (_: unknown, { id }: { id: string }) => {
-      const personIndex = people.findIndex((person) => person.id === id);
-      if (personIndex === -1) throw new Error("Person not found");
-
-      const deletedPerson = people[personIndex];
-      people.splice(personIndex, 1);
-      return deletedPerson;
-    },
-
-    createCar: (_: unknown, { input }: { input: CarInput }) => {
-      const newCar = {
-        id: String(cars.length + 1),
-        ...input,
-      };
-      cars.push(newCar);
-      return newCar;
-    },
-
-    updateCar: (
+    updatePerson: async (
       _: unknown,
-      { id, input }: { id: string; input: UpdateCarInput }
+      { id, updates }: { id: string; updates: Partial<Person> }
     ) => {
-      const carIndex = cars.findIndex((car) => car.id === id);
-      if (carIndex === -1) throw new Error("Car not found");
-
-      const updatedCar = {
-        ...cars[carIndex],
-        ...input,
-      };
-      cars[carIndex] = updatedCar;
-      return updatedCar;
+      return await updatePerson(id, { ...updates });
     },
 
-    deleteCar: (_: unknown, { id }: { id: string }) => {
-      const carIndex = cars.findIndex((car) => car.id === id);
-      if (carIndex === -1) throw new Error("Car not found");
+    deletePerson: async (_: unknown, { id }: { id: string }) => {
+      return await deletePerson(id);
+    },
 
-      const deletedCar = cars[carIndex];
-      cars.splice(carIndex, 1);
-      return deletedCar;
+    addCar: async (_: unknown, { car }: { car: Omit<Car, "id"> }) => {
+      return await addCar(car);
+    },
+
+    updateCar: async (
+      _: unknown,
+      { id, updates }: { id: string; updates: Partial<Car> }
+    ) => {
+      return await updateCar(id, { ...updates });
+    },
+
+    deleteCar: async (_: unknown, { id }: { id: string }) => {
+      return await deleteCar(id);
     },
   },
 
-  // Field resolvers for relationships
   Person: {
-    cars: (person: Person): Car[] =>
-      cars.filter((car) => car.personId === person.id),
+    cars: async (parent: Person) => {
+      const data = await readData();
+      return data.cars.filter((car) => car.personId === parent.id);
+    },
   },
 
-  // Car: {
-  //   owner: (car: Car) => people.find((person) => person.id === car.personId),
-  // },
+  Car: {
+    person: async (parent: Car) => {
+      const data = await readData();
+      return data.people.find((person) => person.id === parent.personId);
+    },
+  },
 };
 
 // Resolvers define how to fetch the types defined in your schema.

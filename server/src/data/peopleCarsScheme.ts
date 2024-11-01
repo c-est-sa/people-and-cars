@@ -1,4 +1,4 @@
-export const people = [
+const people = [
   {
     id: "1",
     firstName: "Bill",
@@ -16,7 +16,7 @@ export const people = [
   },
 ];
 
-export const cars = [
+const cars = [
   {
     id: "1",
     year: "2019",

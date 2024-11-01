@@ -1,14 +1,10 @@
+// https://www.apollographql.com/docs/apollo-server/getting-started
+
 import { ApolloServer } from "@apollo/server"; // preserve-line
 import { startStandaloneServer } from "@apollo/server/standalone"; // preserve-line
 
-import {
-  baseTypeDefs,
-  peopleTypeDefs,
-  carsTypeDefs,
-} from "./schema/typeDefs.js";
+import { typeDefs } from "./schema/typeDefs.js";
 import { resolvers } from "./resolvers/resolvers.js";
-
-const typeDefs = [baseTypeDefs, peopleTypeDefs, carsTypeDefs];
 
 const books = [
   {
@@ -21,7 +17,7 @@ const books = [
   },
 ];
 
-// The ApolloServer constructor requires two parameters: your schema
+// The ApolloServer constructor requires two parameters: your schema definition and your set of resolvers.
 const server = new ApolloServer({
   typeDefs,
   resolvers,
