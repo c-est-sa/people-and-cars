@@ -1,49 +1,39 @@
-import React, { useState } from "react";
+import React, { FC, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { TextField, Button, Stack } from "@mui/material";
 
 import { CREATE_PERSON, GET_PEOPLE } from "../apollo";
+import { NewPersonInput } from "../types/types";
 
-interface PersonInput {
-  firstName: string;
-  lastName: string;
-}
-
-const AddPersonForm = () => {
-  const [formData, setFormData] = useState<PersonInput>({
+const AddPersonForm: FC = () => {
+  const [formData, setFormData] = useState<NewPersonInput>({
     firstName: "",
     lastName: "",
   });
 
   const [createPerson] = useMutation(CREATE_PERSON, {
-    update(cache, { data: { createPerson } }) {
-      const existingData = cache.readQuery<{ people: any[] }>({
-        query: GET_PEOPLE,
-      });
-      if (existingData) {
-        cache.writeQuery({
-          query: GET_PEOPLE,
-          data: {
-            people: [...existingData.people, createPerson],
-          },
-        });
-      }
-    },
+    refetchQueries: [{ query: GET_PEOPLE }],
+    awaitRefetchQueries: true,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createPerson({
-      variables: { input: formData },
-      optimisticResponse: {
-        createPerson: {
-          __typename: "Person",
-          id: "temp-id",
-          ...formData,
+    try {
+      createPerson({
+        variables: { ...formData },
+        optimisticResponse: {
+          createPerson: {
+            __typename: "Person",
+            id: "temp-id",
+            ...formData,
+            cars: [],
+          },
         },
-      },
-    });
-    setFormData({ firstName: "", lastName: "" });
+      });
+      setFormData({ firstName: "", lastName: "" });
+    } catch (error) {
+      console.error("Error creating person:", error);
+    }
   };
 
   return (

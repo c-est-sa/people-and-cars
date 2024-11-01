@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { FC, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation } from "@apollo/client";
 import {
@@ -23,8 +23,16 @@ import {
   DELETE_PERSON,
   UPDATE_PERSON,
 } from "../apollo";
+import { Person } from "../types/types";
 
-const PersonCard = ({ person }) => {
+interface PersonCardProps {
+  key: string;
+  person: Person;
+}
+
+const PersonCard: FC<PersonCardProps> = (props) => {
+  const { key, person } = props;
+
   const [isEditingCar, setIsEditingCar] = useState(false);
   const [isEditingPerson, setIsEditingPerson] = useState(false);
   const [carFormData, setCarFormData] = useState({
@@ -87,7 +95,7 @@ const PersonCard = ({ person }) => {
 
   return (
     <>
-      <Card sx={{ mb: 2 }}>
+      <Card sx={{ mb: 2 }} key={key}>
         <CardContent>
           <Box
             sx={{
@@ -177,7 +185,9 @@ const PersonCard = ({ person }) => {
           </Box>
           <Box sx={{ flex: 1, textAlign: "center" }}>
             <IconButton
-              onClick={() => deletePerson({ variables: { deletePersonId: person.id } })}
+              onClick={() =>
+                deletePerson({ variables: { deletePersonId: person.id } })
+              }
               size="small"
             >
               <DeleteIcon />

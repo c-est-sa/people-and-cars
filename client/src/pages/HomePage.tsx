@@ -1,5 +1,4 @@
-// src/pages/HomePage.tsx
-import React from "react";
+import React, { FC } from "react";
 import { useQuery } from "@apollo/client";
 import { styled } from "@mui/material/styles";
 import { Container, Typography, Box } from "@mui/material";
@@ -8,6 +7,7 @@ import { GET_PEOPLE } from "../apollo";
 import PersonCard from "../components/PersonCard";
 import AddPersonForm from "../components/AddPersonForm";
 import AddCarForm from "../components/AddCarForm";
+import { Person } from "../types/types";
 
 const PageContainer = styled(Container)(({ theme }) => ({
   maxWidth: "64rem",
@@ -31,10 +31,12 @@ const CardsContainer = styled(Box)(({ theme }) => ({
   gap: theme.spacing(4),
 }));
 
-const HomePage = () => {
-  const { loading, error, data } = useQuery(GET_PEOPLE);
+const HomePage: FC = () => {
+  const { loading, error, data } = useQuery(GET_PEOPLE, {
+    fetchPolicy: "cache-and-network",
+  });
 
-  if (loading) return <Typography>Loading...</Typography>;
+  if (loading && !data) return <Typography>Loading...</Typography>;
   if (error) return <Typography>Error: {error.message}</Typography>;
 
   return (
@@ -54,7 +56,7 @@ const HomePage = () => {
         <AddPersonForm />
       </Section>
 
-      {data.people.length > 0 && (
+      {data?.people.length > 0 && (
         <Section>
           <SectionTitle variant="h5">Add Car</SectionTitle>
           <AddCarForm people={data.people} />
@@ -64,8 +66,8 @@ const HomePage = () => {
       <Section>
         <SectionTitle variant="h5">Records</SectionTitle>
         <CardsContainer>
-          {data.people.map((person) => (
-            <PersonCard key={person.id} person={person} />
+          {data.people.map((personObj: Person) => (
+            <PersonCard key={personObj.id} person={personObj} />
           ))}
         </CardsContainer>
       </Section>

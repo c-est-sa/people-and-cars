@@ -5,20 +5,21 @@ export const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
+// in use
 export const GET_PEOPLE = gql`
   query GetPeople {
     people {
+      id
+      firstName
+      lastName
       cars {
         id
+        year
         make
         model
-        personId
         price
-        year
+        personId
       }
-      firstName
-      id
-      lastName
     }
   }
 `;
@@ -41,12 +42,13 @@ export const GET_PERSON_WITH_CARS = gql`
   }
 `;
 
+// in use
 export const CREATE_PERSON = gql`
-  mutation CreatePerson($input: PersonInput!) {
-    createPerson(input: $input) {
+  mutation AddPerson($firstName: String!, $lastName: String!) {
+    addPerson(firstName: $firstName, lastName: $lastName) {
+      lastName
       id
       firstName
-      lastName
     }
   }
 `;
@@ -79,9 +81,10 @@ export const DELETE_PERSON = gql`
   }
 `;
 
+// in use
 export const CREATE_CAR = gql`
-  mutation CreateCar($input: CarInput!) {
-    createCar(input: $input) {
+  mutation AddCar($car: CarInput!) {
+    addCar(car: $car) {
       id
       year
       make

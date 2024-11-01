@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { FC, useState } from "react";
 import { useMutation } from "@apollo/client";
 import {
   TextField,
@@ -9,27 +9,16 @@ import {
 } from "@mui/material";
 
 import { CREATE_CAR, GET_PEOPLE } from "../apollo";
-
-interface CarInput {
-  year: string;
-  make: string;
-  model: string;
-  price: string;
-  personId: string;
-}
-
-interface Person {
-  id: string;
-  firstName: string;
-  lastName: string;
-}
+import { NewCarInput, Person } from "../types/types";
 
 interface AddCarFormProps {
   people: Person[];
 }
 
-const AddCarForm = ({ people }: AddCarFormProps) => {
-  const [formData, setFormData] = useState<CarInput>({
+const AddCarForm: FC<AddCarFormProps> = (props) => {
+  const { people } = props;
+
+  const [formData, setFormData] = useState<NewCarInput>({
     year: "",
     make: "",
     model: "",
@@ -38,36 +27,15 @@ const AddCarForm = ({ people }: AddCarFormProps) => {
   });
 
   const [createCar] = useMutation(CREATE_CAR, {
-    update(cache, { data: { createCar } }) {
-      const existingData = cache.readQuery<{ people: any[] }>({
-        query: GET_PEOPLE,
-      });
-      if (existingData) {
-        const updatedPeople = existingData.people.map((person) => {
-          if (person.id === createCar.personId) {
-            return {
-              ...person,
-              cars: [...person.cars, createCar],
-            };
-          }
-          return person;
-        });
-
-        cache.writeQuery({
-          query: GET_PEOPLE,
-          data: {
-            people: updatedPeople,
-          },
-        });
-      }
-    },
+    refetchQueries: [{ query: GET_PEOPLE }],
+    awaitRefetchQueries: true,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createCar({
       variables: {
-        input: {
+        car: {
           ...formData,
           price: formData.price.replace(/[^0-9.]/g, ""),
         },
@@ -93,11 +61,6 @@ const AddCarForm = ({ people }: AddCarFormProps) => {
     const value = e.target.value;
     setFormData({ ...formData, price: value });
   };
-
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 30 }, (_, i) =>
-    (currentYear - i).toString()
-  );
 
   return (
     <form onSubmit={handleSubmit}>
@@ -147,9 +110,9 @@ const AddCarForm = ({ people }: AddCarFormProps) => {
             setFormData({ ...formData, personId: e.target.value })
           }
         >
-          {people.map((person) => (
-            <MenuItem key={person.id} value={person.id}>
-              {person.firstName} {person.lastName}
+          {people.map((personObj) => (
+            <MenuItem key={personObj.id} value={personObj.id}>
+              {personObj.firstName} {personObj.lastName}
             </MenuItem>
           ))}
         </TextField>
