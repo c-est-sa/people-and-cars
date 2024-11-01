@@ -1,15 +1,10 @@
 import React, { FC, useState } from "react";
-import { Typography, IconButton, TextField, Box } from "@mui/material";
-import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Check as CheckIcon,
-  Close as CloseIcon,
-} from "@mui/icons-material";
+import { Typography, TextField, Box } from "@mui/material";
 
 import { Car, Person } from "../types/types";
 import { useMutation } from "@apollo/client";
 import { DELETE_CAR, GET_PEOPLE, UPDATE_CAR } from "../apollo";
+import CardButtons from "./CardButtons";
 
 interface CarCardProps {
   car: Car;
@@ -176,51 +171,13 @@ const CarCard: FC<CarCardProps> = (props) => {
         )}
       </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        {isEditingCar ? (
-          <>
-            <IconButton
-              onClick={handleCarSubmit}
-              size="small"
-              sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
-            >
-              <CheckIcon />
-              <Typography variant="body1">Update</Typography>
-            </IconButton>
-            <IconButton
-              onClick={() => setIsEditingCar(false)}
-              size="small"
-              sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
-            >
-              <CloseIcon />
-              <Typography variant="body1">Exit Update Mode</Typography>
-            </IconButton>
-          </>
-        ) : (
-          <>
-            <IconButton
-              onClick={() => setIsEditingCar(true)}
-              size="small"
-              sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
-            >
-              <EditIcon />
-            </IconButton>
-            <IconButton
-              onClick={() => handleDeleteCar(car.id)}
-              size="small"
-              sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </>
-        )}
-      </Box>
+      <CardButtons
+        isEditMode={isEditingCar}
+        onClickEdit={() => setIsEditingCar(true)}
+        onClickDelete={() => handleDeleteCar(car.id)}
+        onClickCheck={handleCarSubmit}
+        onClickClose={() => setIsEditingCar(false)}
+      />
     </Box>
   );
 };

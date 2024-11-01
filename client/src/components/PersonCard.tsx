@@ -7,7 +7,6 @@ import {
   CardActions,
   Typography,
   Button,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -15,16 +14,11 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Check as CheckIcon,
-  Close as CloseIcon,
-} from "@mui/icons-material";
 
 import { DELETE_PERSON, UPDATE_PERSON, GET_PEOPLE } from "../apollo";
 import { Person } from "../types/types";
 import CarCard from "./CarCard";
+import CardButtons from "./CardButtons";
 
 interface PersonCardProps {
   key: string;
@@ -153,51 +147,13 @@ const PersonCard: FC<PersonCardProps> = (props) => {
           </Link>
         </CardActions>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          {isEditingPerson ? (
-            <>
-              <IconButton
-                onClick={handlePersonSubmit}
-                size="small"
-                sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
-              >
-                <CheckIcon />
-                <Typography variant="body1">Update</Typography>
-              </IconButton>
-              <IconButton
-                onClick={() => setIsEditingPerson(false)}
-                size="small"
-                sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
-              >
-                <CloseIcon />
-                <Typography variant="body1">Exit Update Mode</Typography>
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <IconButton
-                onClick={() => setIsEditingPerson(true)}
-                size="small"
-                sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
-              >
-                <EditIcon />
-              </IconButton>
-              <IconButton
-                onClick={() => handleDeletePerson(person.id)}
-                size="small"
-                sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </>
-          )}
-        </Box>
+        <CardButtons
+          isEditMode={isEditingPerson}
+          onClickEdit={() => setIsEditingPerson(true)}
+          onClickDelete={() => handleDeletePerson(person.id)}
+          onClickCheck={handlePersonSubmit}
+          onClickClose={() => setIsEditingPerson(false)}
+        />
       </Card>
 
       {/* I personally prefer modal style to input update info. I leave modal code to use it later. */}
