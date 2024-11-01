@@ -30,16 +30,6 @@ export const resolvers = {
       const data = await readData();
       return data.cars.find((car) => car.id === id);
     },
-    // personCars: (_: unknown, { personId }: { personId: string }) =>
-    //   cars.filter((car) => car.personId === personId),
-    // personWithCars: (
-    //   _: unknown,
-    //   { id }: { id: string }
-    // ): Person | undefined => {
-    //   const person = people.find((person) => person.id === id);
-    //   if (!person) return undefined;
-    //   return person;
-    // },
   },
 
   Mutation: {

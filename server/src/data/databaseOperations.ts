@@ -11,18 +11,9 @@ const DB_PATH = path.join(__dirname, "..", "data", "peopleCarsScheme.js");
 
 export const readData = async (): Promise<Database> => {
   try {
-    // const rawData = await fs.readFile(DB_PATH, "utf-8");
-
-    // const jsonData = rawData
-    //   .replace("const people = ", '"people":')
-    //   .replace("const cars = ", '"cars":')
-    //   .replace(/;/g, ",");
-
-    // return JSON.parse(`{${jsonData}}`);
-
     const content = await fs.readFile(DB_PATH, "utf-8");
 
-    // Extract the array contents using regex
+    // extract the array contents using regex
     const peopleMatch = content.match(/const people = (\[[\s\S]*?\]);/);
     const carsMatch = content.match(/const cars = (\[[\s\S]*?\]);/);
 
@@ -30,7 +21,7 @@ export const readData = async (): Promise<Database> => {
       throw new Error("Could not find people or cars data");
     }
 
-    // Parse the arrays
+    // parse the arrays
     const people = eval(peopleMatch[1]) as Person[];
     const cars = eval(carsMatch[1]) as Car[];
 

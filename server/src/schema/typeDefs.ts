@@ -62,54 +62,6 @@ export const typeDefs = `
   }
 `;
 
-// export const carsTypeDefs = `
-//   type Car {
-//     id: String
-//     year: String
-//     make: String
-//     model: String
-//     price: String
-//     personId: String
-//   }
-
-//   input CarInput {
-//     year: String
-//     make: String
-//     model: String
-//     price: String
-//     personId: String
-//   }
-
-//   input UpdateCarInput {
-//     year: String
-//     make: String
-//     model: String
-//     price: String
-//     personId: String
-//   }
-// `;
-
-// export const baseTypeDefs = `#graphql
-//   type Query {
-//     people: [Person]
-//     person(id: String): Person
-//     personWithCars(id: String): Person
-//     cars: [Car]
-//     car(id: String): Car
-//     personCars(personId: String): [Car]
-//   }
-
-//   type Mutation {
-//     createPerson(input: PersonInput): Person
-//     updatePerson(id: String, input: UpdatePersonInput): Person
-//     deletePerson(id: String): Person
-    
-//     createCar(input: CarInput): Car
-//     updateCar(id: String, input: UpdateCarInput): Car
-//     deleteCar(id: String): Car
-//   }
-// `;
-
 // A schema is a collection of type definitions (hence "typeDefs")
 // that together define the "shape" of queries that are executed against
 // your data.
