@@ -40,7 +40,7 @@ const HomePage: FC = () => {
   if (error) return <Typography>Error: {error.message}</Typography>;
 
   return (
-    <PageContainer>
+    <PageContainer maxWidth={false}>
       <Typography
         variant="h4"
         component="h1"

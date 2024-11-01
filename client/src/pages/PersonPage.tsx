@@ -1,13 +1,11 @@
-// src/pages/PersonPage.tsx
-import React, { useState } from "react";
+import React, { FC } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useMutation, useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { styled } from "@mui/material/styles";
 import {
   Container,
   Typography,
   Box,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -15,9 +13,11 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
-import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { ArrowBack } from "@mui/icons-material";
 
-import { GET_PERSON_WITH_CARS, UPDATE_CAR, DELETE_CAR } from "../apollo";
+import { GET_PERSON } from "../apollo";
+import CarCard from "../components/CarCard";
+import { Car } from "../types/types";
 
 const PageContainer = styled(Container)(({ theme }) => ({
   maxWidth: "64rem",
@@ -42,143 +42,59 @@ const CardsContainer = styled(Box)(({ theme }) => ({
   gap: theme.spacing(4),
 }));
 
-const formatPrice = (price: string) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(Number(price));
-};
-
-const PersonPage = () => {
+const PersonPage: FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { loading, error, data } = useQuery(GET_PERSON_WITH_CARS, {
-    variables: { personWithCarsId: id },
+  const { loading, error, data } = useQuery(GET_PERSON, {
+    variables: { personId: id },
   });
-  // const { personWithCars: person } = data;
-
-  const [isEditingCar, setIsEditingCar] = useState(false);
-  const [carFormData, setCarFormData] = useState({
-    id: "",
-    year: "",
-    make: "",
-    model: "",
-    price: "",
-    personId: "",
-  });
-
-  const [updateCar] = useMutation(UPDATE_CAR);
-  const [deleteCar] = useMutation(DELETE_CAR);
 
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography>Error: {error.message}</Typography>;
-  if (!data?.personWithCars) return <Typography>Person not found</Typography>;
-
-  const handleEditCar = (car) => {
-    setCarFormData({
-      id: car.id,
-      year: car.year,
-      make: car.make,
-      model: car.model,
-      price: car.price,
-      personId: car.personId,
-    });
-    setIsEditingCar(true);
-  };
-
-  const handleCarSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateCar({
-      variables: {
-        id: carFormData.id,
-        input: {
-          year: carFormData.year,
-          make: carFormData.make,
-          model: carFormData.model,
-          price: carFormData.price,
-          personId: carFormData.personId,
-        },
-      },
-    });
-    setIsEditingCar(false);
-  };
+  if (!data?.person) return <Typography>Person not found</Typography>;
 
   return (
-    <PageContainer>
-      {data && (
-        <>
-          <Typography
-            variant="h4"
-            component="h1"
-            align="center"
-            gutterBottom
-            sx={{ mb: 6, fontWeight: "bold" }}
-          >
-            {data.personWithCars.firstName} {data.personWithCars.lastName}
-          </Typography>
+    <PageContainer maxWidth={false}>
+      <Link
+        to={"/"}
+        style={{
+          textDecoration: "none",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <ArrowBack />
+        <Button>Go Back</Button>
+      </Link>
 
-          <Section>
-            <SectionTitle variant="h5">Cars Owned:</SectionTitle>
-            <CardsContainer>
-              {data.personWithCars.cars.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  {data.personWithCars.cars.map((car) => (
-                    <Box
-                      key={car.id}
-                      sx={{
-                        mb: 1,
-                        borderWidth: 1,
-                        borderColor: "#E0E0E0",
-                        borderStyle: "solid",
-                        borderRadius: 1,
-                      }}
-                    >
-                      <Box sx={{ p: 2, bgcolor: "#E0E0E0" }}>
-                        <Typography variant="body2">
-                          {`${car.year} ${car.make} ${car.model} ->  
-                      ${new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      }).format(Number(car.price))}`}
-                        </Typography>
-                      </Box>
+      <Typography
+        variant="h4"
+        component="h1"
+        align="center"
+        gutterBottom
+        sx={{ mb: 6, fontWeight: "bold" }}
+      >
+        {data.person.firstName} {data.person.lastName}
+      </Typography>
 
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Box sx={{ flex: 1, textAlign: "center" }}>
-                          <IconButton
-                            onClick={() => handleEditCar(car)}
-                            size="small"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Box>
-                        <Box sx={{ flex: 1, textAlign: "center" }}>
-                          <IconButton
-                            onClick={() =>
-                              deleteCar({ variables: { id: car.id } })
-                            }
-                            size="small"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </CardsContainer>
-          </Section>
-        </>
-      )}
+      <Section>
+        <SectionTitle variant="h5">Cars Owned:</SectionTitle>
+        <CardsContainer>
+          {data.person.cars.length > 0 ? (
+            <Box sx={{ mt: 2 }}>
+              {data.person.cars.map((car: Car) => (
+                <CarCard car={car} />
+              ))}
+            </Box>
+          ) : (
+            <Typography variant="body1" align="center">
+              No cars owned
+            </Typography>
+          )}
+        </CardsContainer>
+      </Section>
 
       {/* edit car modal */}
-      <Dialog
+      {/* <Dialog
         open={isEditingCar}
         onClose={() => setIsEditingCar(false)}
         maxWidth="sm"
@@ -237,7 +153,7 @@ const PersonPage = () => {
             </Button>
           </DialogActions>
         </form>
-      </Dialog>
+      </Dialog> */}
     </PageContainer>
   );
 };

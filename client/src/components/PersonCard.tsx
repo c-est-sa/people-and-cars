@@ -15,15 +15,16 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
-
 import {
-  UPDATE_CAR,
-  DELETE_CAR,
-  DELETE_PERSON,
-  UPDATE_PERSON,
-} from "../apollo";
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
+} from "@mui/icons-material";
+
+import { DELETE_PERSON, UPDATE_PERSON, GET_PEOPLE } from "../apollo";
 import { Person } from "../types/types";
+import CarCard from "./CarCard";
 
 interface PersonCardProps {
   key: string;
@@ -33,64 +34,60 @@ interface PersonCardProps {
 const PersonCard: FC<PersonCardProps> = (props) => {
   const { key, person } = props;
 
-  const [isEditingCar, setIsEditingCar] = useState(false);
   const [isEditingPerson, setIsEditingPerson] = useState(false);
-  const [carFormData, setCarFormData] = useState({
-    id: "",
-    year: "",
-    make: "",
-    model: "",
-    price: "",
-    personId: person.id,
-  });
-  const [formData, setFormData] = useState({
+  const [personFormData, setPersonFormData] = useState({
     firstName: person.firstName,
     lastName: person.lastName,
   });
 
-  const [updateCar] = useMutation(UPDATE_CAR);
-  const [deleteCar] = useMutation(DELETE_CAR);
   const [updatePerson] = useMutation(UPDATE_PERSON);
-  const [deletePerson] = useMutation(DELETE_PERSON);
-
-  const handleEditCar = (car) => {
-    setCarFormData({
-      id: car.id,
-      year: car.year,
-      make: car.make,
-      model: car.model,
-      price: car.price,
-      personId: car.personId,
-    });
-    setIsEditingCar(true);
-  };
-
-  const handleCarSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateCar({
-      variables: {
-        id: carFormData.id,
-        input: {
-          year: carFormData.year,
-          make: carFormData.make,
-          model: carFormData.model,
-          price: carFormData.price,
-          personId: carFormData.personId,
-        },
-      },
-    });
-    setIsEditingCar(false);
-  };
+  const [deletePerson] = useMutation(DELETE_PERSON, {
+    refetchQueries: [{ query: GET_PEOPLE }],
+    awaitRefetchQueries: true,
+  });
 
   const handlePersonSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updatePerson({
-      variables: {
-        id: person.id,
-        input: formData,
-      },
-    });
-    setIsEditingPerson(false);
+    try {
+      updatePerson({
+        variables: {
+          updatePersonId: person.id,
+          updates: personFormData,
+        },
+      });
+      setIsEditingPerson(false);
+    } catch (error) {
+      console.error("Error updating person:", error);
+    }
+  };
+
+  const handleDeletePerson = (personId: string) => {
+    try {
+      deletePerson({
+        variables: { deletePersonId: personId },
+        optimisticResponse: {
+          deletePerson: true,
+        },
+        update(cache) {
+          const existingData = cache.readQuery<{ people: Person[] }>({
+            query: GET_PEOPLE,
+          });
+
+          if (existingData) {
+            cache.writeQuery({
+              query: GET_PEOPLE,
+              data: {
+                people: existingData.people.filter(
+                  (person) => person.id !== personId
+                ),
+              },
+            });
+          }
+        },
+      });
+    } catch (error) {
+      console.error("Error deleting person:", error);
+    }
   };
 
   return (
@@ -100,66 +97,51 @@ const PersonCard: FC<PersonCardProps> = (props) => {
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
+              gap: 2,
               borderBottomWidth: 1,
               borderBottomColor: "#E0E0E0",
               borderBottomStyle: "solid",
             }}
           >
-            <Typography variant="h6">
-              {person.firstName} {person.lastName}
-            </Typography>
+            {isEditingPerson ? (
+              <>
+                <TextField
+                  label="First Name"
+                  value={personFormData.firstName}
+                  onChange={(e) =>
+                    setPersonFormData({
+                      ...personFormData,
+                      firstName: e.target.value,
+                    })
+                  }
+                  fullWidth
+                  required
+                />
+                <TextField
+                  label="Last Name"
+                  value={personFormData.lastName}
+                  onChange={(e) =>
+                    setPersonFormData({
+                      ...personFormData,
+                      lastName: e.target.value,
+                    })
+                  }
+                  fullWidth
+                  required
+                />
+              </>
+            ) : (
+              <Typography variant="h6">
+                {person.firstName} {person.lastName}
+              </Typography>
+            )}
           </Box>
 
           {person.cars.length > 0 && (
             <Box sx={{ mt: 2 }}>
               {person.cars.map((car) => (
-                <Box
-                  key={car.id}
-                  sx={{
-                    mb: 1,
-                    borderWidth: 1,
-                    borderColor: "#E0E0E0",
-                    borderStyle: "solid",
-                    borderRadius: 1,
-                  }}
-                >
-                  <Box sx={{ p: 2, bgcolor: "#E0E0E0" }}>
-                    <Typography variant="body2">
-                      {`${car.year} ${car.make} ${car.model} ->  
-                      ${new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      }).format(Number(car.price))}`}
-                    </Typography>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Box sx={{ flex: 1, textAlign: "center" }}>
-                      <IconButton
-                        onClick={() => handleEditCar(car)}
-                        size="small"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Box>
-                    <Box sx={{ flex: 1, textAlign: "center" }}>
-                      <IconButton
-                        onClick={() => deleteCar({ variables: { id: car.id } })}
-                        size="small"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  </Box>
-                </Box>
+                <CarCard car={car} />
               ))}
             </Box>
           )}
@@ -178,26 +160,50 @@ const PersonCard: FC<PersonCardProps> = (props) => {
             alignItems: "center",
           }}
         >
-          <Box sx={{ flex: 1, textAlign: "center" }}>
-            <IconButton onClick={() => setIsEditingPerson(true)} size="small">
-              <EditIcon />
-            </IconButton>
-          </Box>
-          <Box sx={{ flex: 1, textAlign: "center" }}>
-            <IconButton
-              onClick={() =>
-                deletePerson({ variables: { deletePersonId: person.id } })
-              }
-              size="small"
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Box>
+          {isEditingPerson ? (
+            <>
+              <IconButton
+                onClick={handlePersonSubmit}
+                size="small"
+                sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
+              >
+                <CheckIcon />
+                <Typography variant="body1">Update</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => setIsEditingPerson(false)}
+                size="small"
+                sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
+              >
+                <CloseIcon />
+                <Typography variant="body1">Exit Update Mode</Typography>
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <IconButton
+                onClick={() => setIsEditingPerson(true)}
+                size="small"
+                sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton
+                onClick={() => handleDeletePerson(person.id)}
+                size="small"
+                sx={{ flex: 1, textAlign: "center", borderRadius: 0 }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </>
+          )}
         </Box>
       </Card>
 
+      {/* I personally prefer modal style to input update info. I leave modal code to use it later. */}
+
       {/* edit car modal */}
-      <Dialog
+      {/* <Dialog
         open={isEditingCar}
         onClose={() => setIsEditingCar(false)}
         maxWidth="sm"
@@ -256,10 +262,10 @@ const PersonCard: FC<PersonCardProps> = (props) => {
             </Button>
           </DialogActions>
         </form>
-      </Dialog>
+      </Dialog> */}
 
       {/* edit person modal */}
-      <Dialog
+      {/* <Dialog
         open={isEditingPerson}
         onClose={() => setIsEditingPerson(false)}
         maxWidth="sm"
@@ -273,18 +279,18 @@ const PersonCard: FC<PersonCardProps> = (props) => {
             >
               <TextField
                 label="First Name"
-                value={formData.firstName}
+                value={personFormData.firstName}
                 onChange={(e) =>
-                  setFormData({ ...formData, firstName: e.target.value })
+                  setPersonFormData({ ...personFormData, firstName: e.target.value })
                 }
                 fullWidth
                 required
               />
               <TextField
                 label="Last Name"
-                value={formData.lastName}
+                value={personFormData.lastName}
                 onChange={(e) =>
-                  setFormData({ ...formData, lastName: e.target.value })
+                  setPersonFormData({ ...personFormData, lastName: e.target.value })
                 }
                 fullWidth
                 required
@@ -298,7 +304,7 @@ const PersonCard: FC<PersonCardProps> = (props) => {
             </Button>
           </DialogActions>
         </form>
-      </Dialog>
+      </Dialog> */}
     </>
   );
 };

@@ -5,7 +5,6 @@ export const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-// in use
 export const GET_PEOPLE = gql`
   query GetPeople {
     people {
@@ -24,9 +23,12 @@ export const GET_PEOPLE = gql`
   }
 `;
 
-export const GET_PERSON_WITH_CARS = gql`
-  query GetPersonWithCars($personWithCarsId: String) {
-    personWithCars(id: $personWithCarsId) {
+export const GET_PERSON = gql`
+  query GetPerson($personId: ID!) {
+    person(id: $personId) {
+      id
+      firstName
+      lastName
       cars {
         id
         year
@@ -35,14 +37,10 @@ export const GET_PERSON_WITH_CARS = gql`
         price
         personId
       }
-      firstName
-      id
-      lastName
     }
   }
 `;
 
-// in use
 export const CREATE_PERSON = gql`
   mutation AddPerson($firstName: String!, $lastName: String!) {
     addPerson(firstName: $firstName, lastName: $lastName) {
@@ -54,8 +52,8 @@ export const CREATE_PERSON = gql`
 `;
 
 export const UPDATE_PERSON = gql`
-  mutation UpdatePerson($id: ID!, $input: UpdatePersonInput!) {
-    updatePerson(id: $id, input: $input) {
+  mutation UpdatePerson($updatePersonId: ID!, $updates: UpdatePersonInput!) {
+    updatePerson(id: $updatePersonId, updates: $updates) {
       id
       firstName
       lastName
@@ -64,24 +62,11 @@ export const UPDATE_PERSON = gql`
 `;
 
 export const DELETE_PERSON = gql`
-  mutation DeletePerson($deletePersonId: String) {
-    deletePerson(id: $deletePersonId) {
-      cars {
-        id
-        year
-        make
-        model
-        price
-        personId
-      }
-      firstName
-      id
-      lastName
-    }
+  mutation DeletePerson($deletePersonId: ID!) {
+    deletePerson(id: $deletePersonId)
   }
 `;
 
-// in use
 export const CREATE_CAR = gql`
   mutation AddCar($car: CarInput!) {
     addCar(car: $car) {
@@ -96,8 +81,8 @@ export const CREATE_CAR = gql`
 `;
 
 export const UPDATE_CAR = gql`
-  mutation UpdateCar($id: ID!, $input: UpdateCarInput!) {
-    updateCar(id: $id, input: $input) {
+  mutation UpdateCar($updateCarId: ID!, $updates: UpdateCarInput!) {
+    updateCar(id: $updateCarId, updates: $updates) {
       id
       year
       make
@@ -109,9 +94,7 @@ export const UPDATE_CAR = gql`
 `;
 
 export const DELETE_CAR = gql`
-  mutation DeleteCar($id: ID!) {
-    deleteCar(id: $id) {
-      id
-    }
+  mutation DeleteCar($deleteCarId: ID!) {
+    deleteCar(id: $deleteCarId)
   }
 `;
